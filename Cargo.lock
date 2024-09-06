@@ -286,7 +286,7 @@ checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
 [[package]]
 name = "wasm-convert"
 version = "0.1.0"
-source = "git+https://github.com/benbrandt/wasm-convert?rev=4c5a4b58ce92185a8f8d24fdc297c7f2df664ce2#4c5a4b58ce92185a8f8d24fdc297c7f2df664ce2"
+source = "git+https://github.com/dicej/wasm-convert?rev=afbec48b#afbec48bf992946d34ead239c9be19a9d61772f2"
 dependencies = [
  "wasm-encoder",
  "wasmparser",
