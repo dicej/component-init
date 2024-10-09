@@ -320,7 +320,9 @@ pub async fn initialize_staged(
                         CanonicalFunction::Lower { .. }
                         | CanonicalFunction::ResourceNew { .. }
                         | CanonicalFunction::ResourceDrop { .. }
-                        | CanonicalFunction::ResourceRep { .. } => {
+                        | CanonicalFunction::ResourceRep { .. }
+                        | CanonicalFunction::ThreadSpawn { .. }
+                        | CanonicalFunction::ThreadHwConcurrency => {
                             core_function_count += 1;
                         }
                         CanonicalFunction::Lift { .. } => {
@@ -386,7 +388,7 @@ pub async fn initialize_staged(
         for (global_index, (name, ty)) in globals_to_export {
             let ty = IntoValType(*ty).into();
             let offset = types.len();
-            types.function([], [ty]);
+            types.ty().function([], [ty]);
             let name = name.as_deref().unwrap();
             imports.import(
                 &module_index.to_string(),
@@ -448,7 +450,7 @@ pub async fn initialize_staged(
             ),
         };
         let offset = types.len();
-        types.function([], [wasm_encoder::ValType::I32]);
+        types.ty().function([], [wasm_encoder::ValType::I32]);
         imports.import(
             &module_index.to_string(),
             name,
