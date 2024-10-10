@@ -320,14 +320,15 @@ pub async fn initialize_staged(
                         CanonicalFunction::Lower { .. }
                         | CanonicalFunction::ResourceNew { .. }
                         | CanonicalFunction::ResourceDrop { .. }
-                        | CanonicalFunction::ResourceRep { .. }
-                        | CanonicalFunction::ThreadSpawn { .. }
-                        | CanonicalFunction::ThreadHwConcurrency => {
+                        | CanonicalFunction::ResourceRep { .. } => {
                             core_function_count += 1;
                         }
                         CanonicalFunction::Lift { .. } => {
                             function_count += 1;
                         }
+                        // Unused for now
+                        CanonicalFunction::ThreadSpawn { .. }
+                        | CanonicalFunction::ThreadHwConcurrency => {}
                     }
                 }
                 copy_component_section(section, component_stage1, &mut instrumented_component);
