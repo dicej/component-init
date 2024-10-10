@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.89"
-wasm-convert = { git = "https://github.com/benbrandt/wasm-convert", rev = "afa8d0d" }
+wasm-convert = { git = "https://github.com/dicej/wasm-convert", rev = "a42b419" }
 async-trait = "0.1.83"
 futures = "0.3.31"
 wasm-encoder = "0.219.0"
