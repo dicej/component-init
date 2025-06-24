@@ -1,0 +1,10 @@
+[package]
+name = "component-init-wasmtime"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+component-init.workspace = true
+wasmtime.workspace = true
+wasmtime-wasi.workspace = true
+wasmtime-wasi-http.workspace = true

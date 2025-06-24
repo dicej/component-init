@@ -1,0 +1,11 @@
+[package]
+name = "component-init-cli"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "component-init"
+path = "src/main.rs"
+
+[dependencies]
+component-init-wasmtime.workspace = true

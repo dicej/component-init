@@ -1,11 +1,30 @@
-[package]
-name = "component-init"
-version = "0.1.0"
-edition = "2021"
+[workspace]
+members = ["wasmtime", "cli"]
 
-[dependencies]
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+
+[workspace.dependencies]
+component-init = { path = "." }
+component-init-wasmtime = { path = "./wasmtime" }
 anyhow = "1.0.89"
 async-trait = "0.1.83"
 futures = "0.3.31"
 wasm-encoder = { version = "0.235.0", features = ["wasmparser"] }
 wasmparser = "0.235.0"
+wasmtime = "34.0.1"
+wasmtime-wasi = "34.0.1"
+wasmtime-wasi-http = "34.0.1"
+
+[package]
+name = "component-init"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+async-trait.workspace = true
+futures.workspace = true
+wasm-encoder.workspace = true
+wasmparser.workspace = true
