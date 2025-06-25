@@ -402,7 +402,7 @@ pub async fn initialize_staged(
             }
             functions.function(offset);
             let mut function = Function::new([]);
-            function.instruction(&Ins::GlobalGet(offset));
+            function.instruction(&Ins::GlobalGet(*global_index));
             function.instruction(&Ins::End);
             code.function(&function);
             let export_name =
