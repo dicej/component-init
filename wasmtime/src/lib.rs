@@ -1,14 +1,83 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
+use anyhow::{anyhow, Context, Result};
+use component_init::Invoker;
+use wasmtime::{
+    component::{Component, ComponentNamedList, Instance, Lift, Linker},
+    Config, Engine, Store,
+};
+
+pub async fn initialize(component: &[u8]) -> Result<Vec<u8>> {
+    component_init::initialize(component, |instrumented| {
+        Box::pin(async move {
+            let i = invoker(instrumented).await?;
+            let i: Box<dyn Invoker> = Box::new(i);
+            Ok(i)
+        })
+    })
+    .await
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+async fn invoker(component: Vec<u8>) -> Result<Impl> {
+    let mut config = Config::new();
+    config.async_support(true);
+    let engine = Engine::new(&config).context("creating engine")?;
+    let component =
+        Component::new(&engine, &component).context("compiling instrumented component")?;
+    let mut linker = Linker::new(&engine);
+    linker
+        .define_unknown_imports_as_traps(&component)
+        .context("link unknown imports as traps")?;
+    let mut store = Store::new(&engine, Ctx);
+    let instance = linker
+        .instantiate_async(&mut store, &component)
+        .await
+        .context("instantiate")?;
+    let mut this = Impl { instance, store };
+    this.call::<()>("component-init").await?;
+    Ok(this)
+}
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+struct Ctx;
+
+struct Impl {
+    instance: Instance,
+    store: Store<Ctx>,
+}
+
+impl Impl {
+    async fn call<T: ComponentNamedList + Lift + Send + Sync>(&mut self, name: &str) -> Result<T> {
+        let export = self
+            .instance
+            .get_export_index(&mut self.store, None, name)
+            .ok_or_else(|| anyhow!("{name} is not exported"))?;
+        let func = self
+            .instance
+            .get_func(&mut self.store, export)
+            .ok_or_else(|| anyhow!("{name} export is not a func"))?;
+        let func = func
+            .typed::<(), T>(&mut self.store)
+            .with_context(|| format!("type of {name} func"))?;
+        Ok(func
+            .call_async(&mut self.store, ())
+            .await
+            .with_context(|| format!("executing {name}"))?)
+    }
+}
+
+#[async_trait::async_trait]
+impl Invoker for Impl {
+    async fn call_s32(&mut self, name: &str) -> Result<i32> {
+        Ok(self.call::<(i32,)>(name).await?.0)
+    }
+    async fn call_s64(&mut self, name: &str) -> Result<i64> {
+        Ok(self.call::<(i64,)>(name).await?.0)
+    }
+    async fn call_f32(&mut self, name: &str) -> Result<f32> {
+        Ok(self.call::<(f32,)>(name).await?.0)
+    }
+    async fn call_f64(&mut self, name: &str) -> Result<f64> {
+        Ok(self.call::<(f64,)>(name).await?.0)
+    }
+    async fn call_list_u8(&mut self, name: &str) -> Result<Vec<u8>> {
+        Ok(self.call::<(Vec<u8>,)>(name).await?.0)
     }
 }

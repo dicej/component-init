@@ -8,4 +8,7 @@ name = "component-init"
 path = "src/main.rs"
 
 [dependencies]
+anyhow.workspace = true
+clap = { version = "4", features = ["derive"] }
 component-init-wasmtime.workspace = true
+tokio = { version = "1", features = ["full"] }
