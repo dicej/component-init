@@ -9,6 +9,6 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow.workspace = true
-clap = { version = "4", features = ["derive"] }
+clap.workspace = true
 component-init-wasmtime.workspace = true
-tokio = { version = "1", features = ["full"] }
+tokio.workspace = true
