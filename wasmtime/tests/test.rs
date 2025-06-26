@@ -3,6 +3,8 @@ use test_programs_artifacts::TEST;
 
 #[tokio::test]
 async fn initialize_test_component() -> Result<()> {
+    println!("test component: {TEST:?}");
+
     let component = std::fs::read(TEST)?;
 
     // TODO: execute `component`. it should trap.
