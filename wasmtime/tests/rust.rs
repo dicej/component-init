@@ -84,12 +84,9 @@ async fn init_rust() -> Result<()> {
 
     let initialized_component = component_init_wasmtime::initialize(&component).await?;
 
-    /*
-    // TODO: execute `component`. it should not trap.
     execute(&initialized_component)
         .await
         .context("execute initialized component")?;
-    */
 
     Ok(())
 }
