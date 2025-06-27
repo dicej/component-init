@@ -6,21 +6,21 @@ version = "0.1.0"
 edition = "2024"
 
 [workspace.dependencies]
+anyhow = "1.0.89"
+async-trait = "0.1.83"
 clap = { version = "4", features = ["derive"] }
 component-init = { path = "." }
 component-init-wasmtime = { path = "./wasmtime" }
-anyhow = "1.0.89"
-async-trait = "0.1.83"
 futures = "0.3.31"
-tokio = { version = "1", features = ["full"] }
 test-programs = { path = "./test-programs" }
 test-programs-artifacts = { path = "./test-programs/artifacts" }
+tokio = { version = "1", features = ["full"] }
 wasm-encoder = { version = "0.235.0", features = ["wasmparser"] }
 wasmparser = "0.235.0"
-wat = "1.235.0"
 wasmtime = "34.0.1"
 wasmtime-wasi = "34.0.1"
 wasmtime-wasi-http = "34.0.1"
+wat = "1.235.0"
 wit-bindgen = "0.43.0"
 
 [package]
