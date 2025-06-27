@@ -1,14 +1,11 @@
 name: CI
 on:
     pull_request:
-    push:
-
 env:
   RUSTFLAGS: -Dwarnings
-
 jobs:
   build_and_test:
-    name: Build and test
+    name: Build and Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
@@ -22,15 +19,13 @@ jobs:
         with:
           command: check
           args: --workspace
-
       - name: test
         uses: actions-rs/cargo@v1
         with:
           command: test
           args: --workspace
-
   check_fmt_and_docs:
-    name: Checking fmt and docs
+    name: Checking Format and Docs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
@@ -38,9 +33,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-          target: wasm32-wasip2
       - name: Format
         run: cargo fmt --all -- --check
       - name: Docs
         run: cargo doc
-
