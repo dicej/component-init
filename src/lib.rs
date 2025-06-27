@@ -530,7 +530,6 @@ pub async fn initialize_staged(
 
     let instrumented_component = instrumented_component.finish();
 
-    std::fs::write("instrumented.wasm", &instrumented_component)?;
     Validator::new().validate_all(&instrumented_component)?;
 
     let mut invoker = initialize(instrumented_component).await?;
