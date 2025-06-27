@@ -8,7 +8,9 @@ use wasmtime::{
 pub async fn initialize(component: &[u8]) -> Result<Vec<u8>> {
     component_init::initialize(component, |instrumented| {
         Box::pin(async move {
-            let i = invoker(instrumented).await?;
+            let i = invoker(instrumented)
+                .await
+                .context("running instrumented component")?;
             let i: Box<dyn Invoker> = Box::new(i);
             Ok(i)
         })
@@ -32,11 +34,13 @@ async fn invoker(component: Vec<u8>) -> Result<Impl> {
         .await
         .context("instantiate")?;
     let mut this = Impl { instance, store };
-    this.call::<()>("component-init").await?;
+    this.call::<()>("component-init")
+        .await
+        .context("running the component-init export func")?;
     Ok(this)
 }
 
-struct Ctx;
+pub struct Ctx;
 
 struct Impl {
     instance: Instance,
@@ -56,10 +60,14 @@ impl Impl {
         let func = func
             .typed::<(), T>(&mut self.store)
             .with_context(|| format!("type of {name} func"))?;
-        Ok(func
+        let r = func
             .call_async(&mut self.store, ())
             .await
-            .with_context(|| format!("executing {name}"))?)
+            .with_context(|| format!("executing {name}"))?;
+        func.post_return_async(&mut self.store)
+            .await
+            .with_context(|| format!("post-return {name}"))?;
+        Ok(r)
     }
 }
 

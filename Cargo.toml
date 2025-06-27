@@ -17,9 +17,10 @@ test-programs = { path = "./test-programs" }
 test-programs-artifacts = { path = "./test-programs/artifacts" }
 wasm-encoder = { version = "0.235.0", features = ["wasmparser"] }
 wasmparser = "0.235.0"
+wat = "1.235.0"
 wasmtime = "34.0.1"
-# wasmtime-wasi = "34.0.1"
-# wasmtime-wasi-http = "34.0.1"
+wasmtime-wasi = "34.0.1"
+wasmtime-wasi-http = "34.0.1"
 wit-bindgen = "0.43.0"
 
 [package]
