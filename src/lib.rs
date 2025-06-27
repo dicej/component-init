@@ -1,21 +1,21 @@
 #![deny(warnings)]
 
 use {
-    anyhow::{bail, Context, Result},
+    anyhow::{Context, Result, bail},
     async_trait::async_trait,
     futures::future::BoxFuture,
     std::{
-        collections::{hash_map::Entry, HashMap},
+        collections::{HashMap, hash_map::Entry},
         convert, iter,
     },
     wasm_encoder::{
-        reencode::{Reencode, RoundtripReencoder as Encode},
         Alias, CanonicalFunctionSection, CanonicalOption, CodeSection, Component,
         ComponentAliasSection, ComponentExportKind, ComponentExportSection, ComponentTypeSection,
         ComponentValType, ConstExpr, DataCountSection, DataSection, ExportKind, ExportSection,
         Function, FunctionSection, GlobalSection, GlobalType, ImportSection, InstanceSection,
         Instruction as Ins, MemArg, MemorySection, Module, ModuleArg, ModuleSection,
         NestedComponentSection, PrimitiveValType, RawSection, TypeSection, ValType,
+        reencode::{Reencode, RoundtripReencoder as Encode},
     },
     wasmparser::{
         CanonicalFunction, ComponentAlias, ComponentExternalKind, ComponentTypeRef, ExternalKind,

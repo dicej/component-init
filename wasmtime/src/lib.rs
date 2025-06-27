@@ -1,8 +1,8 @@
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use component_init::Invoker;
 use wasmtime::{
-    component::{Component, ComponentNamedList, Instance, Lift, Linker},
     Config, Engine, Store,
+    component::{Component, ComponentNamedList, Instance, Lift, Linker},
 };
 
 pub async fn initialize(component: &[u8]) -> Result<Vec<u8>> {

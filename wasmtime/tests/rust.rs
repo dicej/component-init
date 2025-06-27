@@ -1,10 +1,10 @@
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use test_programs_artifacts::TEST;
 
 async fn execute(component: &[u8]) -> Result<()> {
     use wasmtime::{
-        component::{Component, Linker, ResourceTable},
         Config, Engine, Store,
+        component::{Component, Linker, ResourceTable},
     };
     use wasmtime_wasi::p2::WasiCtx;
 

@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 
 #[tokio::test]
 async fn init_memory() -> Result<()> {
@@ -100,8 +100,8 @@ async fn test(wat_component: &str) -> Result<()> {
 
 async fn execute(component: &[u8], name: &str) -> Result<()> {
     use wasmtime::{
-        component::{Component, Linker},
         Config, Engine, Store,
+        component::{Component, Linker},
     };
 
     let mut config = Config::new();
