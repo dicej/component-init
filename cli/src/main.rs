@@ -21,11 +21,10 @@ async fn main() -> Result<()> {
     let args = Args::parse();
 
     let infile = &args.input;
-    let input =
-        std::fs::read(infile).with_context(|| format!("reading input from {:?}", infile))?;
+    let input = std::fs::read(infile).with_context(|| format!("reading input from {infile:?}"))?;
     let output = component_init_wasmtime::initialize(&input).await?;
 
     let outfile = args.output.as_ref().unwrap_or(infile);
-    std::fs::write(outfile, output).with_context(|| format!("writing output to {:?}", outfile))?;
+    std::fs::write(outfile, output).with_context(|| format!("writing output to {outfile:?}"))?;
     Ok(())
 }
