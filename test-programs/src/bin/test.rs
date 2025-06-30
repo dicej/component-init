@@ -1,4 +1,4 @@
-use std::cell::Cell;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 wit_bindgen::generate!({
     inline: r"
@@ -8,18 +8,12 @@ wit_bindgen::generate!({
     }"
 });
 
-// rustc won't allow using a a Cell in a static, but since this is a component (which is always
-// single-threaded) we can ignore this and mark it send and sync.
-struct MakeSendSync<T>(T);
-unsafe impl<T> Send for MakeSendSync<T> {}
-unsafe impl<T> Sync for MakeSendSync<T> {}
-
-static IS_INITIALIZED: MakeSendSync<Cell<bool>> = MakeSendSync(Cell::new(false));
+static IS_INITIALIZED: AtomicBool = AtomicBool::new(false);
 
 struct S;
 impl Guest for S {
     fn component_init() {
-        let before = IS_INITIALIZED.0.replace(true);
+        let before = IS_INITIALIZED.swap(true, Ordering::Relaxed);
         assert!(!before, "component should only be initialized once");
     }
 }
@@ -27,6 +21,6 @@ impl Guest for S {
 export!(S);
 
 fn main() {
-    let initialized = IS_INITIALIZED.0.get();
+    let initialized = IS_INITIALIZED.load(Ordering::Relaxed);
     assert!(initialized, "component was not initialized")
 }
