@@ -47,10 +47,12 @@ pub async fn initialize(
     initialize_staged(component, None, initialize).await
 }
 
+pub type Stage2Map<'a> = Option<(&'a [u8], &'a dyn Fn(u32) -> u32)>;
+
 #[allow(clippy::type_complexity)]
 pub async fn initialize_staged(
     component_stage1: &[u8],
-    component_stage2_and_map_module_index: Option<(&[u8], &dyn Fn(u32) -> u32)>,
+    component_stage2_and_map_module_index: Stage2Map<'_>,
     initialize: impl FnOnce(Vec<u8>) -> BoxFuture<'static, Result<Box<dyn Invoker>>>,
 ) -> Result<Vec<u8>> {
     // First, instrument the input component, validating that it conforms to certain rules and exposing the memory
@@ -163,11 +165,8 @@ impl Instrumentation {
     fn ammend_module_exports(&self, module_index: u32, exports: &mut ExportSection) {
         if let Some(g_map) = self.globals.get(&module_index) {
             for (export, _ty) in g_map.values() {
-                match export {
-                    GlobalExport::Synthesized(_m_ix, g_ix) => {
-                        exports.export(&export.module_export(), ExportKind::Global, *g_ix);
-                    }
-                    _ => {}
+                if let GlobalExport::Synthesized(_m_ix, g_ix) = export {
+                    exports.export(&export.module_export(), ExportKind::Global, *g_ix);
                 }
             }
         }
@@ -251,7 +250,7 @@ impl Measurement {
         {
             let mut data = DataSection::new();
             let mut data_segment_count = 0;
-            for (start, len) in Segments::new(&value) {
+            for (start, len) in Segments::new(value) {
                 data_segment_count += 1;
                 data.active(
                     0,
@@ -281,8 +280,7 @@ impl Measurement {
     fn global_init(&self, module_index: u32, global_index: u32) -> Option<wasm_encoder::ConstExpr> {
         self.globals
             .get(&module_index)
-            .map(|m| m.get(&global_index).cloned())
-            .flatten()
+            .and_then(|m| m.get(&global_index).cloned())
     }
 }
 
@@ -296,6 +294,7 @@ fn instrument(component_stage1: &[u8]) -> Result<(Vec<u8>, Instrumentation)> {
     let mut instantiations = HashMap::new();
     let mut instrumented_component = Component::new();
     let mut parser = Parser::new(0).parse_all(component_stage1);
+    #[allow(clippy::while_let_on_iterator)]
     while let Some(payload) = parser.next() {
         let payload = payload?;
         let section = payload.as_section();
@@ -710,7 +709,7 @@ fn instrument(component_stage1: &[u8]) -> Result<(Vec<u8>, Instrumentation)> {
 fn apply(
     measurement: Measurement,
     component_stage1: &[u8],
-    component_stage2_and_map_module_index: Option<(&[u8], &dyn Fn(u32) -> u32)>,
+    component_stage2_and_map_module_index: Stage2Map<'_>,
 ) -> Result<Vec<u8>> {
     let (component_stage2, map_module_index) =
         component_stage2_and_map_module_index.unwrap_or((component_stage1, &convert::identity));
