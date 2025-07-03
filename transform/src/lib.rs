@@ -68,7 +68,7 @@ pub async fn initialize_staged(
     // - No reference type globals
     // - Each module instantiated at most once
     //
-    // instrumentation keeps track of all of the state which will be gathered from the instrumented
+    // `instrumentation` keeps track of all of the state which will be gathered from the instrumented
     // component.
     let (instrumented_component, instrumentation) = instrument(component_stage1)?;
 
@@ -100,22 +100,32 @@ struct MemoryInfo {
 type GlobalMap<T> = HashMap<u32, HashMap<u32, T>>;
 #[derive(Debug)]
 enum GlobalExport {
-    Existing(u32, String),
-    Synthesized(u32, u32),
+    Existing {
+        module_index: u32,
+        export_name: String,
+    },
+    Synthesized {
+        module_index: u32,
+        global_index: u32,
+    },
 }
 impl GlobalExport {
     fn module_export(&self) -> String {
         match self {
-            Self::Existing(_m_ix, s) => s.clone(),
-            Self::Synthesized(_m_ix, g_ix) => format!("component-init:{g_ix}"),
+            Self::Existing { export_name, .. } => export_name.clone(),
+            Self::Synthesized { global_index, .. } => format!("component-init:{global_index}"),
         }
     }
     fn component_export(&self) -> String {
         match self {
-            Self::Existing(m_ix, s) => format!("component-init-get-module{m_ix}-global-{s}"),
-            Self::Synthesized(m_ix, g_ix) => {
-                format!("component-init-get-module{m_ix}-global{g_ix}")
-            }
+            Self::Existing {
+                module_index,
+                export_name,
+            } => format!("component-init-get-module{module_index}-global-{export_name}"),
+            Self::Synthesized {
+                module_index,
+                global_index,
+            } => format!("component-init-get-module{module_index}-global{global_index}"),
         }
     }
 }
@@ -145,7 +155,13 @@ impl Instrumentation {
     fn register_global(&mut self, module_index: u32, global_index: u32, ty: wasmparser::ValType) {
         self.globals.entry(module_index).or_default().insert(
             global_index,
-            (GlobalExport::Synthesized(module_index, global_index), ty),
+            (
+                GlobalExport::Synthesized {
+                    module_index,
+                    global_index,
+                },
+                ty,
+            ),
         );
     }
     fn register_global_export(
@@ -159,14 +175,18 @@ impl Instrumentation {
             .get_mut(&module_index)
             .and_then(|map| map.get_mut(&global_index))
         {
-            *name = GlobalExport::Existing(module_index, export_name.as_ref().to_string());
+            let export_name = export_name.as_ref().to_string();
+            *name = GlobalExport::Existing {
+                module_index,
+                export_name,
+            };
         }
     }
-    fn ammend_module_exports(&self, module_index: u32, exports: &mut ExportSection) {
+    fn amend_module_exports(&self, module_index: u32, exports: &mut ExportSection) {
         if let Some(g_map) = self.globals.get(&module_index) {
             for (export, _ty) in g_map.values() {
-                if let GlobalExport::Synthesized(_m_ix, g_ix) = export {
-                    exports.export(&export.module_export(), ExportKind::Global, *g_ix);
+                if let GlobalExport::Synthesized { global_index, .. } = export {
+                    exports.export(&export.module_export(), ExportKind::Global, *global_index);
                 }
             }
         }
@@ -393,7 +413,7 @@ fn instrument(component_stage1: &[u8]) -> Result<(Vec<u8>, Instrumentation)> {
                                 );
                             }
 
-                            instrumentation.ammend_module_exports(module_index, &mut exports);
+                            instrumentation.amend_module_exports(module_index, &mut exports);
 
                             instrumented_module.section(&exports);
                         }
