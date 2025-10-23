@@ -505,7 +505,23 @@ fn instrument(component_stage1: &[u8]) -> Result<(Vec<u8>, Instrumentation)> {
                         CanonicalFunction::Lower { .. }
                         | CanonicalFunction::ResourceNew { .. }
                         | CanonicalFunction::ResourceDrop { .. }
-                        | CanonicalFunction::ResourceRep { .. } => {
+                        | CanonicalFunction::ResourceRep { .. }
+                        | CanonicalFunction::BackpressureSet
+                        | CanonicalFunction::BackpressureInc
+                        | CanonicalFunction::BackpressureDec
+                        | CanonicalFunction::TaskCancel
+                        | CanonicalFunction::ContextGet(_)
+                        | CanonicalFunction::ContextSet(_)
+                        | CanonicalFunction::ThreadYield { .. }
+                        | CanonicalFunction::SubtaskDrop
+                        | CanonicalFunction::WaitableSetNew
+                        | CanonicalFunction::WaitableSetWait { .. }
+                        | CanonicalFunction::WaitableSetPoll { .. }
+                        | CanonicalFunction::WaitableSetDrop
+                        | CanonicalFunction::WaitableJoin
+                        | CanonicalFunction::ErrorContextNew { .. }
+                        | CanonicalFunction::ErrorContextDebugMessage { .. }
+                        | CanonicalFunction::ErrorContextDrop => {
                             core_function_count += 1;
                         }
                         CanonicalFunction::Lift { .. } => {
