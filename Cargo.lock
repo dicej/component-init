@@ -407,9 +407,9 @@ dependencies = [
  "anyhow",
  "async-trait",
  "futures",
- "wasm-encoder 0.238.1",
- "wasm-metadata",
- "wasmparser 0.238.1",
+ "wasm-encoder 0.240.0",
+ "wasm-metadata 0.240.0",
+ "wasmparser 0.240.0",
 ]
 
 [[package]]
@@ -423,7 +423,7 @@ dependencies = [
  "tokio",
  "wasmtime",
  "wasmtime-wasi",
- "wat",
+ "wat 1.240.0",
 ]
 
 [[package]]
@@ -2130,10 +2130,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "wasm-encoder"
+version = "0.240.0"
+source = "git+https://github.com/bytecodealliance/wasm-tools?rev=b1d8ff59#b1d8ff591bcb8c052b54c3c17495bbbef401897c"
+dependencies = [
+ "leb128fmt",
+ "wasmparser 0.240.0",
+]
+
+[[package]]
 name = "wasm-metadata"
 version = "0.238.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "00094573b000c92134f2ef0f8afa4f6f892de37e78442988c946243a8c44364e"
+dependencies = [
+ "anyhow",
+ "indexmap",
+ "wasm-encoder 0.238.1",
+ "wasmparser 0.238.1",
+]
+
+[[package]]
+name = "wasm-metadata"
+version = "0.240.0"
+source = "git+https://github.com/bytecodealliance/wasm-tools?rev=b1d8ff59#b1d8ff591bcb8c052b54c3c17495bbbef401897c"
 dependencies = [
  "anyhow",
  "auditable-serde",
@@ -2144,8 +2164,8 @@ dependencies = [
  "serde_json",
  "spdx",
  "url",
- "wasm-encoder 0.238.1",
- "wasmparser 0.238.1",
+ "wasm-encoder 0.240.0",
+ "wasmparser 0.240.0",
 ]
 
 [[package]]
@@ -2166,6 +2186,17 @@ name = "wasmparser"
 version = "0.238.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3fa99c8328024423875ae4a55345cfde8f0371327fb2d0f33b0f52a06fc44408"
+dependencies = [
+ "bitflags",
+ "hashbrown",
+ "indexmap",
+ "semver",
+]
+
+[[package]]
+name = "wasmparser"
+version = "0.240.0"
+source = "git+https://github.com/bytecodealliance/wasm-tools?rev=b1d8ff59#b1d8ff591bcb8c052b54c3c17495bbbef401897c"
 dependencies = [
  "bitflags",
  "hashbrown",
@@ -2236,7 +2267,7 @@ dependencies = [
  "wasmtime-internal-unwinder",
  "wasmtime-internal-versioned-export-macros",
  "wasmtime-internal-winch",
- "wat",
+ "wat 1.238.1",
  "windows-sys 0.60.2",
 ]
 
@@ -2520,12 +2551,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "wast"
+version = "240.0.0"
+source = "git+https://github.com/bytecodealliance/wasm-tools?rev=b1d8ff59#b1d8ff591bcb8c052b54c3c17495bbbef401897c"
+dependencies = [
+ "bumpalo",
+ "leb128fmt",
+ "memchr",
+ "unicode-width",
+ "wasm-encoder 0.240.0",
+]
+
+[[package]]
 name = "wat"
 version = "1.238.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0eb84e6ac2997025f80482266fdc9f60fa28ba791b674bfd33855e77fe867631"
 dependencies = [
  "wast 238.0.1",
+]
+
+[[package]]
+name = "wat"
+version = "1.240.0"
+source = "git+https://github.com/bytecodealliance/wasm-tools?rev=b1d8ff59#b1d8ff591bcb8c052b54c3c17495bbbef401897c"
+dependencies = [
+ "wast 240.0.0",
 ]
 
 [[package]]
@@ -2896,7 +2947,7 @@ dependencies = [
  "indexmap",
  "prettyplease",
  "syn",
- "wasm-metadata",
+ "wasm-metadata 0.238.1",
  "wit-bindgen-core",
  "wit-component",
 ]
@@ -2930,7 +2981,7 @@ dependencies = [
  "serde_derive",
  "serde_json",
  "wasm-encoder 0.238.1",
- "wasm-metadata",
+ "wasm-metadata 0.238.1",
  "wasmparser 0.238.1",
  "wit-parser 0.238.1",
 ]
