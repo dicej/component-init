@@ -20,7 +20,7 @@ use {
     },
     wasmparser::{
         CanonicalFunction, ComponentAlias, ComponentExternalKind, ComponentTypeRef, ExternalKind,
-        Instance, Operator, Parser, Payload, TypeRef, Validator,
+        Instance, Operator, Parser, Payload, TypeRef, Validator, WasmFeatures,
     },
 };
 
@@ -72,7 +72,7 @@ pub async fn initialize_staged(
     // component.
     let (instrumented_component, instrumentation) = instrument(component_stage1)?;
 
-    Validator::new().validate_all(&instrumented_component)?;
+    Validator::new_with_features(WasmFeatures::all()).validate_all(&instrumented_component)?;
 
     // A component runtime will instantiate the component and run its component init function.
     let mut invoker = initialize(instrumented_component).await?;
@@ -510,6 +510,7 @@ fn instrument(component_stage1: &[u8]) -> Result<(Vec<u8>, Instrumentation)> {
                         | CanonicalFunction::BackpressureInc
                         | CanonicalFunction::BackpressureDec
                         | CanonicalFunction::TaskCancel
+                        | CanonicalFunction::TaskReturn { .. }
                         | CanonicalFunction::ContextGet(_)
                         | CanonicalFunction::ContextSet(_)
                         | CanonicalFunction::ThreadYield { .. }
@@ -519,6 +520,20 @@ fn instrument(component_stage1: &[u8]) -> Result<(Vec<u8>, Instrumentation)> {
                         | CanonicalFunction::WaitableSetPoll { .. }
                         | CanonicalFunction::WaitableSetDrop
                         | CanonicalFunction::WaitableJoin
+                        | CanonicalFunction::StreamNew { .. }
+                        | CanonicalFunction::StreamRead { .. }
+                        | CanonicalFunction::StreamWrite { .. }
+                        | CanonicalFunction::StreamCancelRead { .. }
+                        | CanonicalFunction::StreamCancelWrite { .. }
+                        | CanonicalFunction::StreamDropReadable { .. }
+                        | CanonicalFunction::StreamDropWritable { .. }
+                        | CanonicalFunction::FutureNew { .. }
+                        | CanonicalFunction::FutureRead { .. }
+                        | CanonicalFunction::FutureWrite { .. }
+                        | CanonicalFunction::FutureCancelRead { .. }
+                        | CanonicalFunction::FutureCancelWrite { .. }
+                        | CanonicalFunction::FutureDropReadable { .. }
+                        | CanonicalFunction::FutureDropWritable { .. }
                         | CanonicalFunction::ErrorContextNew { .. }
                         | CanonicalFunction::ErrorContextDebugMessage { .. }
                         | CanonicalFunction::ErrorContextDrop => {
@@ -873,7 +888,7 @@ fn apply(
 
     let initialized_component = add.to_wasm(&initialized_component)?;
 
-    Validator::new().validate_all(&initialized_component)?;
+    Validator::new_with_features(WasmFeatures::all()).validate_all(&initialized_component)?;
 
     Ok(initialized_component)
 }
