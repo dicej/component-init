@@ -20,7 +20,7 @@ use {
     },
     wasmparser::{
         CanonicalFunction, ComponentAlias, ComponentExternalKind, ComponentTypeRef, ExternalKind,
-        Instance, Operator, Parser, Payload, TypeRef, Validator, WasmFeatures,
+        Imports, Instance, Operator, Parser, Payload, TypeRef, Validator, WasmFeatures,
     },
 };
 
@@ -355,8 +355,13 @@ fn instrument(component_stage1: &[u8]) -> Result<(Vec<u8>, Instrumentation)> {
                     match payload {
                         Payload::ImportSection(reader) => {
                             for import in reader {
-                                if let TypeRef::Global(_) = import?.ty {
-                                    global_count += 1;
+                                match import? {
+                                    Imports::Single(_, import) => {
+                                        if let TypeRef::Global(_) = import.ty {
+                                            global_count += 1;
+                                        }
+                                    }
+                                    Imports::Compact1 { .. } | Imports::Compact2 { .. } => todo!(),
                                 }
                             }
                             copy_module_section(
@@ -506,7 +511,6 @@ fn instrument(component_stage1: &[u8]) -> Result<(Vec<u8>, Instrumentation)> {
                         | CanonicalFunction::ResourceNew { .. }
                         | CanonicalFunction::ResourceDrop { .. }
                         | CanonicalFunction::ResourceRep { .. }
-                        | CanonicalFunction::BackpressureSet
                         | CanonicalFunction::BackpressureInc
                         | CanonicalFunction::BackpressureDec
                         | CanonicalFunction::TaskCancel
@@ -822,8 +826,15 @@ fn apply(
 
                         Payload::ImportSection(reader) => {
                             for import in reader {
-                                if let TypeRef::Global(_) = import?.ty {
-                                    global_count += 1;
+                                match import? {
+                                    Imports::Single(_, import) => {
+                                        if let TypeRef::Global(_) = import.ty {
+                                            global_count += 1;
+                                        }
+                                    }
+                                    Imports::Compact1 { .. } | Imports::Compact2 { .. } => {
+                                        todo!()
+                                    }
                                 }
                             }
                             copy_module_section(section, component_stage2, &mut initialized_module);

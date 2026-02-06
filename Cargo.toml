@@ -30,12 +30,11 @@ syn = "2.0"
 test-programs = { path = "./test-programs" }
 test-programs-artifacts = { path = "./test-programs/artifacts" }
 tokio = { version = "1", features = ["full"] }
-# TODO: switch to wasm-tools 1.241.0 when available
-wasm-encoder = { git = "https://github.com/bytecodealliance/wasm-tools", rev = "b1d8ff59", features = ["wasmparser"] }
-wasmparser = { git = "https://github.com/bytecodealliance/wasm-tools", rev = "b1d8ff59" }
-wasm-metadata = { git = "https://github.com/bytecodealliance/wasm-tools", rev = "b1d8ff59" }
-wat = { git = "https://github.com/bytecodealliance/wasm-tools", rev = "b1d8ff59" }
-wasmtime = "36.0.2"
-wasmtime-wasi = "36.0.2"
-wasmtime-wasi-http = "36.0.2"
-wit-bindgen = "0.45.0"
+wasm-encoder = { version = "0.244.0", features = ["wasmparser"] }
+wasmparser = "0.244.0"
+wasm-metadata = "0.244.0"
+wat = "1.244.0"
+wasmtime = "41.0.3"
+wasmtime-wasi = "41.0.3"
+wasmtime-wasi-http = "41.0.3"
+wit-bindgen = "0.52.0"
