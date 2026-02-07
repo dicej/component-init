@@ -1,5 +1,13 @@
 # Pre-initialize WebAssembly Components
 
+> **Note**: This repository has been more-or-less merged into the main
+> [Wasmtime repository] and is now part of the `wasmtime wizer` subcommand. This
+> will first be released with Wasmtime 39.0.0 on 2025-11-20. New development,
+> features, bugs, etc, are recommended to happen upstream in Wasmtime itself.
+
+[Wasmtime repository]: https://github.com/bytecodealliance/wasmtime
+
+
 [Wizer][] demonstrated that WebAssembly modules can be made to start up
 faster by pre-initializing them. `component-init` does the same thing,
 but for the WebAssembly Component Model.
