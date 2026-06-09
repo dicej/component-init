@@ -2,6 +2,8 @@
 name = "component-init"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
+description = "Utility for deriving a pre-initialization function for a WebAssembly component"
 
 [dependencies]
 component-init-macro.workspace = true
