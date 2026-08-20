@@ -508,6 +508,19 @@ fn instrument(component_stage1: &[u8]) -> Result<(Vec<u8>, Instrumentation)> {
                 for function in reader {
                     match function? {
                         CanonicalFunction::Lower { .. }
+                        | CanonicalFunction::ThreadSpawnRef { .. }
+                        | CanonicalFunction::ThreadSpawnIndirect { .. }
+                        | CanonicalFunction::ThreadAvailableParallelism { .. }
+                        | CanonicalFunction::SubtaskCancel { .. }
+                        | CanonicalFunction::ThreadIndex
+                        | CanonicalFunction::ThreadNewIndirect { .. }
+                        | CanonicalFunction::ThreadResumeLater
+                        | CanonicalFunction::ThreadSuspend { .. }
+                        | CanonicalFunction::ThreadSuspendThenResume { .. }
+                        | CanonicalFunction::ThreadSuspendThenPromote { .. }
+                        | CanonicalFunction::ThreadYield { .. }
+                        | CanonicalFunction::ThreadYieldThenResume { .. }
+                        | CanonicalFunction::ThreadYieldThenPromote { .. }
                         | CanonicalFunction::ResourceNew { .. }
                         | CanonicalFunction::ResourceDrop { .. }
                         | CanonicalFunction::ResourceRep { .. }
@@ -515,9 +528,8 @@ fn instrument(component_stage1: &[u8]) -> Result<(Vec<u8>, Instrumentation)> {
                         | CanonicalFunction::BackpressureDec
                         | CanonicalFunction::TaskCancel
                         | CanonicalFunction::TaskReturn { .. }
-                        | CanonicalFunction::ContextGet(_)
-                        | CanonicalFunction::ContextSet(_)
-                        | CanonicalFunction::ThreadYield { .. }
+                        | CanonicalFunction::ContextGet { .. }
+                        | CanonicalFunction::ContextSet { .. }
                         | CanonicalFunction::SubtaskDrop
                         | CanonicalFunction::WaitableSetNew
                         | CanonicalFunction::WaitableSetWait { .. }
@@ -546,8 +558,6 @@ fn instrument(component_stage1: &[u8]) -> Result<(Vec<u8>, Instrumentation)> {
                         CanonicalFunction::Lift { .. } => {
                             function_count += 1;
                         }
-                        // Unused for now
-                        _ => {}
                     }
                 }
                 copy_component_section(section, component_stage1, &mut instrumented_component);
@@ -967,23 +977,25 @@ fn mem_arg(offset: u64, align: u32) -> MemArg {
 }
 
 fn copy_component_section(
-    section: Option<(u8, Range<usize>)>,
+    section: Option<(u8, Range<u64>)>,
     component: &[u8],
     result: &mut Component,
 ) {
     if let Some((id, range)) = section {
         result.section(&RawSection {
             id,
-            data: &component[range],
+            data: &component
+                [usize::try_from(range.start).unwrap()..usize::try_from(range.end).unwrap()],
         });
     }
 }
 
-fn copy_module_section(section: Option<(u8, Range<usize>)>, module: &[u8], result: &mut Module) {
+fn copy_module_section(section: Option<(u8, Range<u64>)>, module: &[u8], result: &mut Module) {
     if let Some((id, range)) = section {
         result.section(&RawSection {
             id,
-            data: &module[range],
+            data: &module
+                [usize::try_from(range.start).unwrap()..usize::try_from(range.end).unwrap()],
         });
     }
 }
