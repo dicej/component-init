@@ -5,7 +5,7 @@ use {
     async_trait::async_trait,
     futures::future::BoxFuture,
     std::{
-        collections::{HashMap, hash_map::Entry},
+        collections::{HashMap, HashSet, hash_map::Entry},
         convert, iter,
         ops::Range,
     },
@@ -19,8 +19,9 @@ use {
         reencode::{Reencode, RoundtripReencoder as Encode},
     },
     wasmparser::{
-        CanonicalFunction, ComponentAlias, ComponentExternalKind, ComponentTypeRef, ExternalKind,
-        Imports, Instance, Operator, Parser, Payload, TypeRef, Validator, WasmFeatures,
+        CanonicalFunction, ComponentAlias, ComponentExternalKind, ComponentTypeRef, Data, DataKind,
+        ExternalKind, Imports, Instance, Operator, Parser, Payload, TypeRef, Validator,
+        WasmFeatures,
     },
 };
 
@@ -136,6 +137,7 @@ impl GlobalExport {
 struct Instrumentation {
     memory: Option<MemoryInfo>,
     globals: GlobalMap<(GlobalExport, wasmparser::ValType)>,
+    modules_with_passive_data_segments: HashSet<u32>,
 }
 impl Instrumentation {
     fn register_memory(
@@ -257,13 +259,18 @@ impl Instrumentation {
         } else {
             None
         };
-        Ok(Measurement { memory, globals })
+        Ok(Measurement {
+            memory,
+            globals,
+            modules_with_passive_data_segments: self.modules_with_passive_data_segments.clone(),
+        })
     }
 }
 
 struct Measurement {
     memory: Option<(u32, Vec<u8>)>,
     globals: GlobalMap<wasm_encoder::ConstExpr>,
+    modules_with_passive_data_segments: HashSet<u32>,
 }
 
 impl Measurement {
@@ -445,6 +452,23 @@ fn instrument(component_stage1: &[u8]) -> Result<(Vec<u8>, Instrumentation)> {
                                 component_stage1,
                                 &mut instrumented_module,
                             );
+                        }
+
+                        Payload::DataSection(reader) => {
+                            if reader.clone().into_iter().any(|data| {
+                                matches!(
+                                    data,
+                                    Ok(Data {
+                                        kind: DataKind::Passive,
+                                        ..
+                                    })
+                                )
+                            }) {
+                                instrumentation
+                                    .modules_with_passive_data_segments
+                                    .insert(module_index);
+                            }
+                            copy_module_section(section, component_stage1, &mut instrumented_module)
                         }
 
                         _ => {
@@ -869,12 +893,47 @@ fn apply(
                             initialized_module.section(&globals);
                         }
 
-                        Payload::DataSection(_) | Payload::StartSection { .. } => (),
+                        Payload::DataSection(reader) => {
+                            if measurement
+                                .modules_with_passive_data_segments
+                                .contains(&module_index)
+                            {
+                                assert!(data_section.is_none());
+                                let mut segments = DataSection::new();
+                                for data in reader {
+                                    let data = data?;
+                                    match &data.kind {
+                                        DataKind::Passive => {
+                                            segments.passive(data.data.iter().copied());
+                                        }
+                                        DataKind::Active { .. } => {
+                                            // dummy segment just to keep the indexes unchanged:
+                                            segments.active(0, &ConstExpr::i32_const(0), []);
+                                        }
+                                    }
+                                }
+                                initialized_module.section(&segments);
+                            }
+                        }
 
-                        Payload::DataCountSection { .. } => {
-                            initialized_module.section(&DataCountSection {
-                                count: data_segment_count,
-                            });
+                        Payload::StartSection { .. } => (),
+
+                        Payload::DataCountSection { count, .. } => {
+                            let count = if measurement
+                                .modules_with_passive_data_segments
+                                .contains(&module_index)
+                            {
+                                if data_section.is_some() {
+                                    bail!(
+                                        "not yet supported: modules with passive data segments _and_ snapshot segments"
+                                    );
+                                }
+                                count
+                            } else {
+                                data_segment_count
+                            };
+
+                            initialized_module.section(&DataCountSection { count });
                         }
 
                         _ => {
