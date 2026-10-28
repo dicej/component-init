@@ -339,8 +339,8 @@ fn instrument(component_stage1: &[u8]) -> Result<(Vec<u8>, Instrumentation)> {
                     let my_range = section.as_ref().map(|(_, range)| range.clone());
                     copy_component_section(section, component_stage1, &mut subcomponent);
 
-                    if let Some(my_range) = my_range
-                        && my_range.end >= unchecked_range.end
+                    if matches!(payload, Payload::End(_))
+                        || matches!(my_range, Some(my_range) if my_range.end >= unchecked_range.end)
                     {
                         break;
                     }
@@ -359,6 +359,8 @@ fn instrument(component_stage1: &[u8]) -> Result<(Vec<u8>, Instrumentation)> {
                     let payload = payload?;
                     let section = payload.as_section();
                     let my_range = section.as_ref().map(|(_, range)| range.clone());
+                    let is_end = matches!(payload, Payload::End(_))
+                        || matches!(my_range, Some(my_range) if my_range.end >= unchecked_range.end);
                     match payload {
                         Payload::ImportSection(reader) => {
                             for import in reader {
@@ -476,9 +478,7 @@ fn instrument(component_stage1: &[u8]) -> Result<(Vec<u8>, Instrumentation)> {
                         }
                     }
 
-                    if let Some(my_range) = my_range
-                        && my_range.end >= unchecked_range.end
-                    {
+                    if is_end {
                         break;
                     }
                 }
@@ -534,7 +534,7 @@ fn instrument(component_stage1: &[u8]) -> Result<(Vec<u8>, Instrumentation)> {
                         CanonicalFunction::Lower { .. }
                         | CanonicalFunction::ThreadSpawnRef { .. }
                         | CanonicalFunction::ThreadSpawnIndirect { .. }
-                        | CanonicalFunction::ThreadAvailableParallelism { .. }
+                        | CanonicalFunction::ThreadAvailableParallelism
                         | CanonicalFunction::SubtaskCancel { .. }
                         | CanonicalFunction::ThreadIndex
                         | CanonicalFunction::ThreadNewIndirect { .. }
@@ -823,8 +823,8 @@ fn apply(
                     let my_range = section.as_ref().map(|(_, range)| range.clone());
                     copy_component_section(section, component_stage2, &mut subcomponent);
 
-                    if let Some(my_range) = my_range
-                        && my_range.end >= unchecked_range.end
+                    if matches!(payload, Payload::End(_))
+                        || matches!(my_range, Some(my_range) if my_range.end >= unchecked_range.end)
                     {
                         break;
                     }
@@ -843,6 +843,8 @@ fn apply(
                     let payload = payload?;
                     let section = payload.as_section();
                     let my_range = section.as_ref().map(|(_, range)| range.clone());
+                    let is_end = matches!(payload, Payload::End(_))
+                        || matches!(my_range, Some(my_range) if my_range.end >= unchecked_range.end);
                     match payload {
                         Payload::MemorySection(reader) => {
                             let mut memories = MemorySection::new();
@@ -941,9 +943,7 @@ fn apply(
                         }
                     }
 
-                    if let Some(my_range) = my_range
-                        && my_range.end >= unchecked_range.end
-                    {
+                    if is_end {
                         break;
                     }
                 }
